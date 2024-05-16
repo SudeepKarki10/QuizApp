@@ -7,6 +7,8 @@ import Error from "./Error";
 import StartScreen from "./StartScreen";
 import Question from "./Question";
 import Nextbutton from "./Nextbutton";
+import Progress from "./Progress";
+import FinishScreen from "./FinishScreen";
 
 export default function App() {
   function reducer(state, action) {
@@ -48,6 +50,12 @@ export default function App() {
           answer: null,
         };
 
+      case "finish":
+        return {
+          ...state,
+          status: "finished",
+        };
+
       default:
         return new Error("Unknown Error!");
     }
@@ -61,14 +69,19 @@ export default function App() {
     points: 0,
   };
 
-  const [{ questions, status, index, answer }, dispatch] = useReducer(
+  const [{ questions, status, index, answer, points }, dispatch] = useReducer(
     reducer,
     initialstate
   );
 
-  console.log(questions, status);
+  // console.log(questions, status);
 
   const numQuestions = questions.length;
+
+  const maxPossiblePoints = questions.reduce(
+    (total, question) => total + question.points,
+    0
+  );
 
   useEffect(() => {
     console.log(initialstate);
@@ -99,14 +112,33 @@ export default function App() {
 
         {status === "active" && (
           <>
+            <Progress
+              index={index}
+              numQuestions={numQuestions}
+              points={points}
+              maxPossiblePoints={maxPossiblePoints}
+              answer={answer}
+            />
+
             <Question
               question={questions[index]}
               dispatch={dispatch}
               answer={answer}
             />
 
-            <Nextbutton dispatch={dispatch} />
+            {index !== numQuestions && (
+              <Nextbutton
+                dispatch={dispatch}
+                answe={answer}
+                index={index}
+                numQuestions={numQuestions}
+              />
+            )}
           </>
+        )}
+
+        {status === "finished" && (
+          <FinishScreen points={points} maxPossiblePoints={maxPossiblePoints} />
         )}
       </main>
     </div>
